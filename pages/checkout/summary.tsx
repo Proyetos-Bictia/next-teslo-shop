@@ -1,10 +1,40 @@
+import { useContext, useEffect, useState } from 'react';
 import NextLink from 'next/link'
-import { Box, Button, Card, CardContent, Divider, Grid, Typography, Link } from "@mui/material";
+import { Box, Button, Card, CardContent, Divider, Grid, Typography, Link, Chip } from "@mui/material";
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/router';
 
 import { CartList, OrdenSummary } from "../../comoponents/cart";
 import { ShopLayout } from "../../comoponents/layouts";
+import { CartContext } from '../../context';
+import { countries } from '../../utils/countries';
 
 const SummaryPage = () => {
+  const { shippingAddress, cart, createOrder } = useContext(CartContext);
+  const router = useRouter();
+  const [isPosting, setIsPosting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    if (!Cookies.get('firstName')) {
+      router.replace('/checkout/address')
+    }
+  }, [router])
+
+  const onCreateOrder = async () => {
+    setIsPosting(true);
+
+    const { hasError, message } = await createOrder();
+    console.log({hasError,  message});
+
+    if (hasError) {
+      setIsPosting(false);
+      setErrorMessage(message);
+      return;
+    }
+    router.replace(`/orders/${message}`);
+  }
+
   return (
     <ShopLayout title='Resumen de orden' pageDescription="Resumen de la orden">
       <>
@@ -12,18 +42,20 @@ const SummaryPage = () => {
 
         <Grid container>
           <Grid item xs={12} sm={7}>
-            <CartList />
+            <CartList
+              editable={false}
+            />
           </Grid>
 
           <Grid item xs={12} sm={5}>
             <Card className="summary-card">
               <CardContent>
-                <Typography variant='h2'>Resumen (3 productos)</Typography>
+                <Typography variant='h2'>Resumen ({cart.length} productos)</Typography>
 
                 <Divider sx={{ my: 1 }} />
 
                 <Box display='flex' justifyContent='space-between'>
-                <Typography variant='subtitle1'>Dirección de entrega</Typography>
+                  <Typography variant='subtitle1'>Dirección de entrega</Typography>
                   <NextLink href='/checkout/address' passHref>
                     <Link underline='always'>
                       Editar
@@ -31,11 +63,11 @@ const SummaryPage = () => {
                   </NextLink>
                 </Box>
 
-                <Typography>Camilo Davila</Typography>
-                <Typography>323 Algun lugar</Typography>
-                <Typography>CAlle 45a, Tunja</Typography>
-                <Typography>Colombia</Typography>
-                <Typography>+57 3214314628</Typography>
+                <Typography>{shippingAddress?.firstName} {shippingAddress?.lastName}</Typography>
+                <Typography>{shippingAddress?.address}</Typography>
+                <Typography>{shippingAddress?.city}, {shippingAddress?.zip}</Typography>
+                <Typography>{countries.find((country) => country.code === shippingAddress?.country)?.name}</Typography>
+                <Typography>+57 {shippingAddress?.phone}</Typography>
 
                 <Divider sx={{ my: 1 }} />
 
@@ -49,11 +81,22 @@ const SummaryPage = () => {
 
                 <OrdenSummary />
 
-
-                <Box sx={{ mt: 3 }}>
-                  <Button color='secondary' className="circular-btn" fullWidth>
+                <Box sx={{ mt: 3 }} display='flex' flexDirection='column'>
+                  <Button
+                    color='secondary'
+                    className="circular-btn"
+                    fullWidth
+                    onClick={onCreateOrder}
+                    disabled={isPosting}
+                  >
                     Confirmar Orden
                   </Button>
+
+                  <Chip
+                    color='error'
+                    label={errorMessage}
+                    sx={{ display: errorMessage ? 'flex' : 'none', mt: 2 }}
+                  />
                 </Box>
               </CardContent>
             </Card>

@@ -8,8 +8,7 @@ import { ProductList } from '../comoponents/products';
 import { usePorducts } from '../hooks';
 
 
-
-const Home: NextPage = () => {
+const HomePage: NextPage = () => {
 
   const { products, isloading } = usePorducts('/products')
 
@@ -31,4 +30,4 @@ const Home: NextPage = () => {
   )
 }
 
-export default Home
+export default HomePage

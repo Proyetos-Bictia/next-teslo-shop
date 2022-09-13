@@ -1,12 +1,15 @@
+import { useContext } from 'react';
+import { useRouter } from 'next/router';
 import NextLink from 'next/link';
 import { AppBar, Badge, Box, Button, IconButton, Link, Toolbar, Typography } from "@mui/material";
 import { SearchOutlined, ShoppingCartOutlined } from '@mui/icons-material';
-import { useRouter } from 'next/router';
+
+import { CartContext, UiContext } from '../../context';
 
 export const Navbar = () => {
-
+  const { toogleSideMenu } = useContext(UiContext);
+  const { numberOfItems } = useContext(CartContext);
   const { asPath } = useRouter();
-  
 
   return (
     <AppBar>
@@ -48,14 +51,14 @@ export const Navbar = () => {
         <NextLink href='/cart' passHref>
           <Link>
             <IconButton>
-              <Badge badgeContent={2} color='secondary'>
+              <Badge badgeContent={numberOfItems > 9 ? '+9' : numberOfItems} color='secondary'>
                 <ShoppingCartOutlined />
               </Badge>
             </IconButton>
           </Link>
         </NextLink>
 
-        <Button>
+        <Button onClick={toogleSideMenu}>
           Menú
         </Button>
 
